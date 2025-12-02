@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Imagen centrada con shake</title>
+
+<style>
+    body {
+        margin: 0;
+        background-color: #AE4F4F;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        transition: background-color 0.3s ease;
+    }
+
+    img {
+        max-width: 80%;
+        height: auto;
+    }
+
+    #buttonPermission {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 20px;
+        font-size: 16px;
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<img src="paje.png" alt="Imagen centrada" />
+
+<button id="buttonPermission">Activar sensores</button>
+
+<script>
+// --- Detección de permiso para iOS ---
+if (typeof DeviceMotionEvent.requestPermission === "function") {
+    const button = document.getElementById("buttonPermission");
+    button.style.display = "block";
+    button.addEventListener("click", () => {
+        DeviceMotionEvent.requestPermission().then(state => {
+            if (state === "granted") {
+                button.style.display = "none";
+                iniciarShake();
+            }
+        });
+    });
+} else {
+    iniciarShake();
+}
+
+// --- Función de detección de agitación ---
+function iniciarShake() {
+    let lastX = null;
+    let lastY = null;
+    let lastZ = null;
+    const threshold = 15; // sensibilidad
+
+    let colorInicial = "#AE4F4F"; 
+    let colorActual = colorInicial;
+
+    window.addEventListener("devicemotion", function(event) {
+        let acc = event.accelerationIncludingGravity;
+        if (!acc) return;
+
+        if (lastX !== null) {
+            let deltaX = Math.abs(acc.x - lastX);
+            let deltaY = Math.abs(acc.y - lastY);
+            let deltaZ = Math.abs(acc.z - lastZ);
+
+            // Detecta cuando se agita con fuerza
+            if (deltaX > threshold || deltaY > threshold || deltaZ > threshold) {
+                // Alterna entre el color inicial y negro
+                colorActual = (colorActual === colorInicial) ? "black" : colorInicial;
+                document.body.style.backgroundColor = colorActual;
+            }
+        }
+
+        lastX = acc.x;
+        lastY = acc.y;
+        lastZ = acc.z;
+    });
+}
+</script>
+
+</body>
+</html>
